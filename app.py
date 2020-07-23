@@ -84,9 +84,20 @@ def stations():
     return jsonify(station_list)
 
 #temperature page
-temperature_station_data = session.query(Measurement.tobs).filter(Meausrement.station == 'USC00519281').filter(Measurement.date >='2016-08-19').all()
+@app.route("/api/v1.0/tobs")
+def temperature():
+    #Query the temperature/dates for active station
+    temperature_station_data = session.query(Measurement.tobs).filter(Measurement.station == 'USC00519281').filter(Measurement.date >='2016-08-19').all()
+    temp_list = []
+    #looping active station tobs
+    for x in temperature_station_data:
+        temp_dict = {}
+        temp_dict['tobs'] = x.tobs
+        temp_list.append(temp_dict)
 
-temp_list = list(results)
+    #session,close()
+
+    return jsonify(temp_list)
 
 
 
