@@ -61,7 +61,7 @@ def precipitation():
         precip_dict[x[0]] = x[1]
         precip_list.append(precip_dict)
 
-    #session,close()
+    session.close()
 
     return jsonify(precip_list)
 
@@ -80,8 +80,9 @@ def stations():
         stations_dict['longitude']=x.longitude
         stations_dict['elevation']=x.elevation
         station_list.append(stations_dict)
-
+    session.close()
     return jsonify(station_list)
+    
 
 #temperature page
 @app.route("/api/v1.0/tobs")
@@ -92,15 +93,54 @@ def temperature():
     #looping active station tobs
     for x in temperature_station_data:
         temp_dict = {}
+        #temp_dict['id'] = x.id
         temp_dict['tobs'] = x.tobs
         temp_list.append(temp_dict)
 
-    #session,close()
+    session.close()
 
     return jsonify(temp_list)
 
+#startdate page
+@app.route("/api/v1.0/<start_date>")
+def startdate(start_date):
+    #Query the temperature/dates for active station
+    temperature_start_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start_date).all()
+    all_statistics = []
+    #looping measurements
 
+    for min,max,avg in temperature_start_data:
+        stats_dict = {}
+        stats_dict["Tmin"] = min
+        stats_dict["Tavg"] = avg
+        stats_dict["Tmax"] = max
+        
+        all_statistics.append(stats_dict)
+    
+    session.close()
+    return jsonify(all_statistics)
 
+    
+
+#startenddate page
+@app.route("/api/v1.0/<start_date>/<end_date>")
+def enddate(start_date,end_date):
+    #Query the temperature/dates for active station
+    temperature_start_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+    all_statistics = []
+    #looping measurements
+
+    for min,max,avg in temperature_start_data:
+        stats_dict = {}
+        stats_dict["Tmin"] = min
+        stats_dict["Tavg"] = avg
+        stats_dict["Tmax"] = max
+        
+        all_statistics.append(stats_dict)
+    
+    session.close()
+    
+    return jsonify(all_statistics)
 
 if __name__ == '__main__':
     app.run(debug=True, port = 5009)
